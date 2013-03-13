@@ -24,7 +24,7 @@ import javax.net.ssl.SSLSocket;
 
 import iaik.asn1.ObjectID;
 import iaik.asn1.structures.Name;
-
+import iaik.utils.Util.*;
 
 /** 
  * HTTPS proxy implementation.
@@ -156,10 +156,13 @@ public class HTTPSProxyEngine extends ProxyEngine
 		    //   so that we can copy those values in the certificate that we forge.
 		    //   (Recall that we, as a MITM, obtain the server's actual certificate from our own session as a client
 		    //    to that server.)
-		    javax.security.cert.X509Certificate[] serverCertChain = null;
-		    iaik.x509.X509Certificate serverCertificate = null;
-		    Principal serverDN = null;
-		    BigInteger serverSerialNumber = null;
+		    javax.security.cert.X509Certificate[] serverCertChain = 
+            (remoteSocket.getSession().getPeerCertificateChain());
+		    iaik.x509.X509Certificate serverCertificate = 
+            new iaik.x509.X509Certificate (serverCertChain[0].getEncoded());
+        //    iaik.utils.Util.convertCertificate (serverCertChain[0]);
+		    Principal serverDN = serverCertificate.getSubjectDN ();
+		    BigInteger serverSerialNumber = serverCertificate.getSerialNumber ();
 
 
 		    //We've already opened the socket, so might as well keep using it:

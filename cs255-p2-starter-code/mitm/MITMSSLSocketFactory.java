@@ -104,16 +104,16 @@ public final class MITMSSLSocketFactory implements MITMSocketFactory
      * that is initialized with a dynamically generated server certificate
      * that contains the specified Distinguished Name.
      */
-    public MITMSSLSocketFactory(Principal serverDN, BigInteger serialNumber)
-	throws IOException,GeneralSecurityException, Exception
-    {
+     
+public MITMSSLSocketFactory(Principal serverDN, BigInteger serialNumber)
+	throws IOException,GeneralSecurityException, Exception {
+
 	this();
-        // TODO(cs255): replace this with code to generate a new (forged) server certificate with a DN of serverDN
-        //   and a serial number of serialNumber.
+  // TODO(cs255): replace this with code to generate a new (forged) server certificate with a DN of serverDN
+  //   and a serial number of serialNumber.
 
 	// You may find it useful to work from the comment skeleton below.
 
-        /*
 	final String keyStoreFile = System.getProperty(JSSEConstants.KEYSTORE_PROPERTY);
 	final char[] keyStorePassword = System.getProperty(JSSEConstants.KEYSTORE_PASSWORD_PROPERTY, "").toCharArray();
 	final String keyStoreType = System.getProperty(JSSEConstants.KEYSTORE_TYPE_PROPERTY, "jks");
@@ -132,14 +132,29 @@ public final class MITMSSLSocketFactory implements MITMSocketFactory
 	}
 
 	// Get our key pair and our own DN (not the remote server's DN) from the keystore.
-	PrivateKey privateKey = // . . .
-	iaik.x509.X509Certificate certificate = new iaik.x509.X509Certificate(keyStore.getCertificate(alias).getEncoded());
-	PublicKey publicKey = // . . .
-	Principal ourDN = // . . .
+  
+  PrivateKey privateKey = (PrivateKey) ks.getKey (alias, keyStorePassword);
+  Certificate cert = keyStore.getCertificate(alias);
+	iaik.x509.X509Certificate certificate = new iaik.x509.X509Certificate(cert.getEncoded());
+	PublicKey publicKey = cert.getPublicKey();
+	Principal ourDN = certificate.getIssuerX500Principal();
 
-	// . . .
+  // Initialize a new certificate for the server
 
-	iaik.x509.X509Certificate serverCertificate = // . . .
+	iaik.x509.X509Certificate serverCertificate = new iaik.x509.X509Certificate ();
+  serverCertificate.setIssuerDN (ourDN);
+  serverCertificate.setSubjectDN (serverDN);
+  serverCertificate.setSerialNumber (serialNumber);
+  serverCertificate.setPublicKey (publicKey);
+  
+  Calendar cal = Calendar.getInstance();
+  cal.set (Calendar.WEEK_OF_YEAR, 1);
+  cal.set (Calendar.DAY_OF_WEEK, 1);
+  serverCertificate.setValidNotBefore (cal.getTime());
+  cal.add (Calendar.YEAR, 1);
+  serverCertificate.setValidNotAfter (cal.getTime());
+
+  ks.setKeyEntry ("forged", privateKey, keyStorePassword, new Certificate[] { serverCertificate });
 
 	// . . .
 
@@ -149,20 +164,15 @@ public final class MITMSSLSocketFactory implements MITMSocketFactory
 	
 	final KeyManagerFactory keyManagerFactory =
 	    KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
-	keyManagerFactory.init(serverKeyStore, emptyPassword);
+	keyManagerFactory.init(serverKeyStore, keyStorePassword);
 
-	m_sslContext = SSLContext.getInstance("SSL");
 	m_sslContext.init(keyManagerFactory.getKeyManagers(),
 			  new TrustManager[] { new TrustEveryone() },
 			  null);
 
-	m_clientSocketFactory = // . . .
-	m_serverSocketFactory = // . . .
+}
 
-	*/
-    }
-
-    public final ServerSocket createServerSocket(String localHost,
+public final ServerSocket createServerSocket(String localHost,
 						 int localPort,
 						 int timeout)
 	throws IOException
