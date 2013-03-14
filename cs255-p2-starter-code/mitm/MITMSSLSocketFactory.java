@@ -154,11 +154,11 @@ public MITMSSLSocketFactory(Principal serverDN, BigInteger serialNumber)
   cal.add (Calendar.YEAR, 1);
   serverCertificate.setValidNotAfter (cal.getTime());
 
-  ks.setKeyEntry ("forged", privateKey, keyStorePassword, new Certificate[] { serverCertificate });
 
 	// . . .
 
 	KeyStore serverKeyStore = KeyStore.getInstance(keyStoreType);
+  serverKeyStore.setKeyEntry ("forged", privateKey, keyStorePassword, new Certificate[] { serverCertificate });
 
 	// . . .
 	
